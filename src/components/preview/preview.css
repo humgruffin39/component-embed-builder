@@ -1,0 +1,326 @@
+/* Structure of the component embed preview. Colours come from discord-tokens.css. */
+
+.dc-root {
+  --dc-accent: var(--dc-border);
+  background: var(--dc-bg-chat);
+  color: var(--dc-text);
+  font-family:
+    "gg sans", var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.375;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Container ---------------------------------------------------------------- */
+
+.dc-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 600px;
+  padding: 12px;
+  border: 1px solid var(--dc-border);
+  border-left: 4px solid var(--dc-accent);
+  border-radius: 12px;
+  background: var(--dc-bg-container);
+}
+
+.dc-container--plain {
+  border-left-width: 1px;
+}
+
+.dc-container--spoiler > * {
+  filter: blur(16px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.dc-container--spoiler {
+  cursor: pointer;
+}
+
+/* Text --------------------------------------------------------------------- */
+
+.dc-text {
+  min-width: 0;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.dc-heading {
+  margin: 8px 0 4px;
+  color: var(--dc-text-strong);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.dc-heading:first-child {
+  margin-top: 0;
+}
+
+h1.dc-heading {
+  font-size: 1.5rem;
+}
+
+h2.dc-heading {
+  font-size: 1.25rem;
+}
+
+h3.dc-heading {
+  font-size: 1rem;
+}
+
+.dc-subtext {
+  color: var(--dc-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.3;
+}
+
+.dc-list {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+
+.dc-list .dc-list {
+  margin: 0;
+}
+
+ul.dc-list {
+  list-style: disc;
+}
+
+ol.dc-list {
+  list-style: decimal;
+}
+
+.dc-quote {
+  display: flex;
+  margin: 4px 0;
+  padding-left: 12px;
+  border-left: 4px solid var(--dc-quote-bar);
+  border-radius: 2px;
+  flex-direction: column;
+}
+
+.dc-link {
+  color: var(--dc-link);
+  text-decoration: none;
+}
+
+.dc-link:hover {
+  text-decoration: underline;
+}
+
+.dc-code {
+  padding: 0.15em 0.3em;
+  border: 1px solid var(--dc-code-border);
+  border-radius: 4px;
+  background: var(--dc-code-bg);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.85em;
+}
+
+.dc-codeblock {
+  margin: 6px 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  border: 1px solid var(--dc-code-border);
+  border-radius: 4px;
+  background: var(--dc-code-bg);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.875em;
+  line-height: 1.25;
+  white-space: pre-wrap;
+}
+
+.dc-mention,
+.dc-timestamp {
+  padding: 0 2px;
+  border-radius: 3px;
+  background: var(--dc-mention-bg);
+  color: var(--dc-mention-text);
+  font-weight: 500;
+}
+
+.dc-spoiler {
+  border-radius: 4px;
+  background: var(--dc-spoiler-bg);
+  color: transparent;
+  cursor: pointer;
+}
+
+.dc-spoiler:hover {
+  background: var(--dc-spoiler-bg-hover);
+}
+
+.dc-spoiler--revealed {
+  background: var(--dc-spoiler-bg);
+  color: inherit;
+  cursor: auto;
+}
+
+/* Section ------------------------------------------------------------------ */
+
+.dc-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.dc-section__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dc-section__accessory {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+/* Media -------------------------------------------------------------------- */
+
+.dc-media {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--dc-media-empty);
+}
+
+.dc-media__asset {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dc-media__empty {
+  display: flex;
+  width: 100%;
+  min-height: 72px;
+  align-items: center;
+  justify-content: center;
+  color: var(--dc-text-muted);
+  font-size: 0.8125rem;
+}
+
+.dc-media--spoiler {
+  cursor: pointer;
+}
+
+.dc-media--spoiler {
+  background: var(--dc-spoiler-cover);
+}
+
+.dc-media--spoiler .dc-media__asset {
+  filter: blur(24px);
+  opacity: 0.35;
+}
+
+.dc-media__badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--dc-spoiler-pill);
+  color: var(--dc-spoiler-pill-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+}
+
+.dc-thumbnail {
+  width: 86px;
+  height: 86px;
+}
+
+.dc-gallery {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(var(--dc-gallery-columns, 1), 1fr);
+}
+
+.dc-gallery .dc-media {
+  aspect-ratio: 16 / 9;
+}
+
+.dc-gallery--mosaic {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.dc-gallery--mosaic > :first-child {
+  aspect-ratio: auto;
+  grid-row: span 2;
+}
+
+.dc-gallery--single .dc-media {
+  max-height: 320px;
+  aspect-ratio: auto;
+}
+
+.dc-gallery--single .dc-media__asset {
+  object-fit: contain;
+}
+
+/* Separator ---------------------------------------------------------------- */
+
+.dc-separator {
+  height: 1px;
+  margin: 0;
+  background: var(--dc-separator);
+}
+
+.dc-separator--large {
+  margin: 8px 0;
+}
+
+.dc-separator--bare {
+  background: transparent;
+}
+
+/* Buttons ------------------------------------------------------------------ */
+
+.dc-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dc-button {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--dc-button-bg);
+  color: var(--dc-button-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 6px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.dc-button:hover {
+  background: var(--dc-button-bg-hover);
+}
+
+.dc-button__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.dc-button__emoji {
+  font-size: 1.125em;
+  line-height: 1;
+}

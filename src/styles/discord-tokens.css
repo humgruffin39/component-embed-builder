@@ -1,0 +1,61 @@
+/**
+ * Colour tokens for the component embed preview.
+ *
+ * The dark values are sampled pixel by pixel from Discord's own rendered
+ * screenshots in the Link Previews docs
+ * (images/link-previews/link-preview-component-{full,text}.webp in
+ * discord/discord-api-docs#8606), so they match a real client.
+ *
+ * The light values are not sampled — the docs ship dark screenshots only.
+ * They follow Discord's published light palette and are still approximate.
+ */
+
+[data-dc-theme="dark"] {
+  --dc-bg-chat: #1a1a1e;
+  --dc-bg-container: #242429;
+  --dc-border: #323237;
+  --dc-text: #efeff1;
+  --dc-text-strong: #fbfbfb;
+  --dc-text-muted: #949ba4;
+  --dc-link: #6094e8;
+  --dc-separator: #3b3b41;
+  --dc-code-bg: #1a1a1e;
+  --dc-code-border: #323237;
+  --dc-quote-bar: #4e5058;
+  --dc-button-bg: #323237;
+  --dc-button-bg-hover: #3b3b41;
+  --dc-button-text: #fbfbfb;
+  --dc-spoiler-bg: #1a1a1e;
+  --dc-spoiler-bg-hover: #26262b;
+  --dc-spoiler-cover: #656568;
+  --dc-spoiler-pill: #272727;
+  --dc-spoiler-pill-text: #e4e4e6;
+  --dc-mention-bg: rgb(88 101 242 / 0.3);
+  --dc-mention-text: #c9cdfb;
+  --dc-media-empty: #1a1a1e;
+}
+
+[data-dc-theme="light"] {
+  --dc-bg-chat: #ffffff;
+  --dc-bg-container: #f2f3f5;
+  --dc-border: #e3e5e8;
+  --dc-text: #313338;
+  --dc-text-strong: #060607;
+  --dc-text-muted: #5c5e66;
+  --dc-link: #0068e0;
+  --dc-separator: #e3e5e8;
+  --dc-code-bg: #ebedef;
+  --dc-code-border: #dcdee1;
+  --dc-quote-bar: #c4c9ce;
+  --dc-button-bg: #e3e5e8;
+  --dc-button-bg-hover: #d7d9dc;
+  --dc-button-text: #313338;
+  --dc-spoiler-bg: #d2d4d7;
+  --dc-spoiler-bg-hover: #c4c9ce;
+  --dc-spoiler-cover: #b5b8bc;
+  --dc-spoiler-pill: #f2f3f5;
+  --dc-spoiler-pill-text: #313338;
+  --dc-mention-bg: rgb(88 101 242 / 0.15);
+  --dc-mention-text: #505cdc;
+  --dc-media-empty: #e3e5e8;
+}
