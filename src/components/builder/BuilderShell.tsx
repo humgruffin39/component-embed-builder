@@ -79,27 +79,27 @@ export const BuilderShell = () => {
           orientation="horizontal"
           className="min-h-0 flex-1 p-2 pt-0"
         >
-        <Panel id="tree" defaultSize="18" minSize="12" maxSize="32">
+        <Panel id="tree" defaultSize="18%" minSize="12%" maxSize="32%">
           <Card>
             <TreePanel root={root} />
           </Card>
         </Panel>
         <Handle />
-        <Panel id="inspector" defaultSize="26" minSize="16" maxSize="45">
+        <Panel id="inspector" defaultSize="26%" minSize="16%" maxSize="45%">
           <Card>
             <InspectorPanel root={root} />
           </Card>
         </Panel>
         <Handle />
-        <Panel id="right" defaultSize="56" minSize="25">
+        <Panel id="right" defaultSize="56%" minSize="25%">
           <Group id="builder-rows" orientation="vertical" className="h-full">
-            <Panel id="preview" defaultSize="58" minSize="15">
+            <Panel id="preview" defaultSize="58%" minSize="15%">
               <Card>
                 <PreviewPanel root={root} />
               </Card>
             </Panel>
             <Handle vertical />
-            <Panel id="output" defaultSize="42" minSize="12">
+            <Panel id="output" defaultSize="42%" minSize="12%">
               <Card>
                 <OutputPanel root={root} issues={issues} />
               </Card>
