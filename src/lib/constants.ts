@@ -16,10 +16,20 @@ export const ComponentType = {
   Container: 17,
 } as const;
 
+/** Human names for the component types, shared by the tree and the preview. */
+export const NODE_LABELS: Record<number, string> = {
+  [ComponentType.ActionRow]: "Action Row",
+  [ComponentType.Button]: "Link Button",
+  [ComponentType.Section]: "Section",
+  [ComponentType.TextDisplay]: "Text",
+  [ComponentType.Thumbnail]: "Thumbnail",
+  [ComponentType.MediaGallery]: "Gallery",
+  [ComponentType.Separator]: "Separator",
+  [ComponentType.Container]: "Container",
+};
+
 /** The only button style a component embed accepts. */
 export const LINK_BUTTON_STYLE = 5;
-
-export const SeparatorSpacing = { Small: 1, Large: 2 } as const;
 
 export const LIMITS = {
   /** Total components in a payload, nested ones included. */
@@ -57,10 +67,7 @@ export const EMBED_TAG = {
   mimeType: "application/json",
 } as const;
 
-/** Discord caches a preview for roughly this long; resharing shows the old card. */
-export const PREVIEW_CACHE_MINUTES = 30;
-
-export const EMBED_DEBUGGER_URL = "https://discord.com/developers/embeds";
+export const REPO_URL = "https://github.com/humgruffin39/component-embed-builder";
 
 export const DOCS_URL =
   "https://github.com/discord/discord-api-docs/pull/8606";

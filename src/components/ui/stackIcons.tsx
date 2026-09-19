@@ -48,6 +48,17 @@ const SvelteIcon = (props: IconProps) => (
   </svg>
 );
 
+/** The app's own mark, kept in step with `app/icon.svg`. */
+export const BrandMark = (props: IconProps) => (
+  <svg viewBox="0 0 32 32" aria-hidden="true" {...props}>
+    <rect width="32" height="32" rx="7" fill="#0d0d0d" />
+    <rect x="6" y="8" width="3" height="16" rx="1.5" fill="#5865f2" />
+    <rect x="12" y="9" width="14" height="3" rx="1.5" fill="#ededed" />
+    <rect x="12" y="14.5" width="10" height="3" rx="1.5" fill="#8f8f8f" />
+    <rect x="12" y="20" width="12" height="3" rx="1.5" fill="#8f8f8f" />
+  </svg>
+);
+
 /**
  * The Markdown mark, as published, but drawn in `currentColor`: the original
  * is hard-coded white, which would vanish against the light theme.

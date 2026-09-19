@@ -15,16 +15,20 @@ import {
   IconCard,
   IconCheckmark1,
   IconChevronRight,
+  IconCode,
   IconColumns3,
   IconDivider,
   IconDotGrid2x3,
   IconEmojiAddReaction,
   IconExclamationCircle,
+  IconEyedropper,
   IconImages1Alt,
   IconImages4,
   IconLayoutColumn,
+  IconLayersThree,
   IconPlusMedium,
   IconSquareBehindSquare2,
+  IconSettingsGear2,
   IconTextBlock,
   IconTrashCanSimple,
   IconWarningSign,
@@ -41,13 +45,17 @@ const raw = (Source: Icon): Icon => {
 };
 
 export const CheckIcon = raw(IconCheckmark1);
+export const CodeIcon = raw(IconCode);
 export const ChevronIcon = raw(IconChevronRight);
 export const CopyIcon = raw(IconSquareBehindSquare2);
 export const EmojiIcon = raw(IconEmojiAddReaction);
 export const ErrorIcon = raw(IconExclamationCircle);
 export const ExternalIcon = raw(IconArrowUpRight);
 export const GripIcon = raw(IconDotGrid2x3);
+export const ListIcon = raw(IconLayersThree);
+export const PipetteIcon = raw(IconEyedropper);
 export const PlusIcon = raw(IconPlusMedium);
+export const SlidersIcon = raw(IconSettingsGear2);
 export const TrashIcon = raw(IconTrashCanSimple);
 export const WarningIcon = raw(IconWarningSign);
 
