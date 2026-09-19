@@ -1,14 +1,12 @@
 import { ComponentType, LIMITS, MEDIA_FORMATS } from "@/lib/constants";
 import type { ContainerNode } from "@/lib/document";
 import { isComponentNode, walk } from "@/lib/tree";
+import { extensionOf } from "@/lib/url";
 
 /**
- * The Open Graph fallback, derived from the embed rather than authored beside
- * it.
- *
- * Discord shows the fallback only when a client cannot render a component
- * embed, so it should say what the embed already says. Asking for it twice was
- * the same content entered twice, and the two drifted apart.
+ * The Open Graph fallback, derived from the embed rather than typed in beside
+ * it. Discord shows it only when a client cannot render a component embed, so
+ * it should say what the embed says.
  */
 
 export interface Fallback {
@@ -47,10 +45,9 @@ export const trimToBytes = (value: string, maxBytes: number): string => {
 };
 
 const isImage = (url: string): boolean => {
-  const path = url.split(/[?#]/, 1)[0];
-  const dot = path.lastIndexOf(".");
-  if (dot === -1) return true; // no extension to judge by, so let it through
-  const extension = path.slice(dot + 1).toLowerCase();
+  const extension = extensionOf(url);
+  // No extension to judge by, so let it through.
+  if (extension === "") return true;
   return (MEDIA_FORMATS.image as readonly string[]).includes(extension);
 };
 

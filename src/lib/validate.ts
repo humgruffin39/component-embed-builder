@@ -2,6 +2,7 @@ import { ComponentType, LIMITS, MEDIA_FORMATS } from "@/lib/constants";
 import type { ContainerNode, NodeId } from "@/lib/document";
 import { toPayload } from "@/lib/document";
 import { countComponents, isComponentNode, walk } from "@/lib/tree";
+import { extensionOf } from "@/lib/url";
 
 export type IssueLevel = "error" | "warning";
 
@@ -14,12 +15,6 @@ export interface Issue {
 
 const byteLength = (value: string): number =>
   new TextEncoder().encode(value).length;
-
-const extensionOf = (url: string): string => {
-  const path = url.split(/[?#]/, 1)[0];
-  const dot = path.lastIndexOf(".");
-  return dot === -1 ? "" : path.slice(dot + 1).toLowerCase();
-};
 
 interface MediaCheck {
   url: string;
