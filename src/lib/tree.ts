@@ -1,4 +1,5 @@
-import { ComponentType } from "@/lib/constants";
+import { ComponentType, LIMITS, NODE_LABELS } from "@/lib/constants";
+import { ROOT_PATH, childPath } from "@/lib/path";
 import {
   type ActionRowNode,
   type ContainerChildNode,
@@ -50,17 +51,6 @@ export const createContainerChild = (
   }
 };
 
-export const NODE_LABELS: Record<number, string> = {
-  [ComponentType.ActionRow]: "Action Row",
-  [ComponentType.Button]: "Link Button",
-  [ComponentType.Section]: "Section",
-  [ComponentType.TextDisplay]: "Text",
-  [ComponentType.Thumbnail]: "Thumbnail",
-  [ComponentType.MediaGallery]: "Gallery",
-  [ComponentType.Separator]: "Separator",
-  [ComponentType.Container]: "Container",
-};
-
 /** The reorderable child arrays a node owns, in tree order. */
 const slotsOf = (node: TreeNode): TreeNode[][] => {
   if (!isComponentNode(node)) return [];
@@ -75,6 +65,9 @@ const slotsOf = (node: TreeNode): TreeNode[][] => {
       return [];
   }
 };
+
+/** The one reorderable list a node owns, or an empty array for a leaf. */
+export const slotsFor = (node: TreeNode): TreeNode[] => slotsOf(node)[0] ?? [];
 
 const childrenOf = (node: TreeNode): TreeNode[] => {
   const children = slotsOf(node).flat();
@@ -120,21 +113,72 @@ export const findParent = (root: ContainerNode, id: NodeId): TreeNode | null => 
   return found;
 };
 
-interface Owner {
+export interface Owner {
+  /** The node that owns the slot, needed to decide what the slot will take. */
+  parent: TreeNode;
   list: TreeNode[];
   index: number;
 }
 
-/** Locates the array a node lives in, so it can be moved, cloned or removed. */
+/** Locates the array a node lives in, so it can be moved or removed. */
 export const findOwner = (root: ContainerNode, id: NodeId): Owner | null => {
   let owner: Owner | null = null;
   walk(root, (node) => {
+    if (owner) return;
     for (const list of slotsOf(node)) {
       const index = list.findIndex((child) => child.id === id);
-      if (index !== -1) owner = { list, index };
+      if (index !== -1) owner = { parent: node, list, index };
     }
   });
   return owner;
+};
+
+/** How many a slot will hold, so a drag cannot overfill one. */
+const slotCapacity = (parent: TreeNode): number => {
+  if (!isComponentNode(parent)) return 0;
+  switch (parent.type) {
+    case ComponentType.Container:
+      return LIMITS.components;
+    case ComponentType.Section:
+      return LIMITS.sectionTextMax;
+    case ComponentType.ActionRow:
+      return LIMITS.actionRowButtons;
+    case ComponentType.MediaGallery:
+      return LIMITS.galleryItemsMax;
+    default:
+      return 0;
+  }
+};
+
+/**
+ * Whether a slot will take this node. Each parent holds exactly one kind of
+ * child, so a drag into the wrong place is refused rather than silently
+ * producing a payload Discord rejects.
+ */
+export const slotAccepts = (
+  parent: TreeNode,
+  list: TreeNode[],
+  node: TreeNode,
+): boolean => {
+  if (!isComponentNode(parent)) return false;
+  const galleryItem = !isComponentNode(node);
+  if (!list.includes(node) && list.length >= slotCapacity(parent)) return false;
+
+  switch (parent.type) {
+    case ComponentType.Container:
+      return (
+        !galleryItem &&
+        (INSERTABLE_TYPES as readonly number[]).includes(node.type)
+      );
+    case ComponentType.Section:
+      return !galleryItem && node.type === ComponentType.TextDisplay;
+    case ComponentType.ActionRow:
+      return !galleryItem && node.type === ComponentType.Button;
+    case ComponentType.MediaGallery:
+      return galleryItem;
+    default:
+      return false;
+  }
 };
 
 export const moveWithin = <T>(list: T[], from: number, to: number): void => {
@@ -145,8 +189,164 @@ export const moveWithin = <T>(list: T[], from: number, to: number): void => {
 export const isSection = (node: TreeNode): node is SectionNode =>
   isComponentNode(node) && node.type === ComponentType.Section;
 
-export const isActionRow = (node: TreeNode): node is ActionRowNode =>
-  isComponentNode(node) && node.type === ComponentType.ActionRow;
 
-export const isMediaGallery = (node: TreeNode): node is MediaGalleryNode =>
-  isComponentNode(node) && node.type === ComponentType.MediaGallery;
+/**
+ * Walks the tree the way the renderer does, pairing each node with the
+ * structural path the preview labels it with. The order of the slots matters:
+ * it has to match `toPayload` exactly, or the two address spaces drift.
+ */
+const eachWithPath = (
+  node: TreeNode,
+  path: string,
+  visit: (node: TreeNode, path: string) => void,
+): void => {
+  visit(node, path);
+  if (!isComponentNode(node)) return;
+
+  switch (node.type) {
+    case ComponentType.Container:
+    case ComponentType.ActionRow:
+      node.components.forEach((child, index) =>
+        eachWithPath(child, childPath(path, "components", index), visit),
+      );
+      break;
+    case ComponentType.Section:
+      node.components.forEach((child, index) =>
+        eachWithPath(child, childPath(path, "components", index), visit),
+      );
+      eachWithPath(node.accessory, childPath(path, "accessory"), visit);
+      break;
+    case ComponentType.MediaGallery:
+      node.items.forEach((item, index) =>
+        eachWithPath(item, childPath(path, "items", index), visit),
+      );
+      break;
+  }
+};
+
+/** The node the preview rendered at this path, for turning a click into a selection. */
+export const nodeAtPath = (
+  root: ContainerNode,
+  path: string,
+): TreeNode | null => {
+  let found: TreeNode | null = null;
+  eachWithPath(root, ROOT_PATH, (node, nodePath) => {
+    if (nodePath === path) found = node;
+  });
+  return found;
+};
+
+/** The path the preview renders a node at, for drawing the selection outline. */
+export const pathOfNode = (root: ContainerNode, id: NodeId): string | null => {
+  let found: string | null = null;
+  eachWithPath(root, ROOT_PATH, (node, nodePath) => {
+    if (node.id === id) found = nodePath;
+  });
+  return found;
+};
+
+/**
+ * Slots that cannot be left empty: Discord rejects a section with no text, a
+ * gallery with no items and an action row with no buttons, so emptying one of
+ * these takes the parent with it.
+ */
+export const hasEmptyRequiredSlot = (node: TreeNode): boolean => {
+  if (!isComponentNode(node)) return false;
+  switch (node.type) {
+    case ComponentType.Section:
+    case ComponentType.ActionRow:
+      return node.components.length === 0;
+    case ComponentType.MediaGallery:
+      return node.items.length === 0;
+    default:
+      return false;
+  }
+};
+
+/** Every ancestor of a node, innermost first. */
+export const ancestorsOf = (root: ContainerNode, id: NodeId): TreeNode[] => {
+  const chain: TreeNode[] = [];
+  let current = findParent(root, id);
+  while (current) {
+    chain.push(current);
+    current = findParent(root, current.id);
+  }
+  return chain;
+};
+
+/**
+ * The rows the tree shows, top to bottom, skipping anything folded away.
+ * Arrow keys walk this list, so it has to match what is on screen.
+ */
+export const visibleRows = (
+  root: ContainerNode,
+  collapsed: Record<NodeId, boolean>,
+): { id: NodeId; parentId: NodeId | null; group: boolean }[] => {
+  const rows: { id: NodeId; parentId: NodeId | null; group: boolean }[] = [];
+
+  const isGroup = (node: TreeNode) =>
+    isComponentNode(node) &&
+    (node.type === ComponentType.Section ||
+      node.type === ComponentType.MediaGallery ||
+      node.type === ComponentType.ActionRow);
+
+  const step = (node: TreeNode, parentId: NodeId | null) => {
+    rows.push({ id: node.id, parentId, group: isGroup(node) });
+    if (isGroup(node) && collapsed[node.id]) return;
+    for (const child of slotsFor(node)) step(child, node.id);
+    if (isSection(node)) rows.push({ id: node.accessory.id, parentId: node.id, group: false });
+  };
+
+  rows.push({ id: root.id, parentId: null, group: false });
+  for (const child of root.components) step(child, root.id);
+  return rows;
+};
+
+/**
+ * Where an addition would land, given what is selected. Selecting a gallery
+ * item means the gallery, a button means its row, a section's text means the
+ * section; anything else means the container. The palette names this, so the
+ * destination is never a guess.
+ */
+export const destinationFor = (
+  root: ContainerNode,
+  selectedId: NodeId | null,
+): ContainerNode | SectionNode | MediaGalleryNode | ActionRowNode => {
+  if (!selectedId) return root;
+
+  const chain = [
+    findNode(root, selectedId),
+    ...ancestorsOf(root, selectedId),
+  ].filter((node): node is TreeNode => node !== null);
+
+  for (const node of chain) {
+    if (!isComponentNode(node)) continue;
+    if (
+      node.type === ComponentType.Section ||
+      node.type === ComponentType.MediaGallery ||
+      node.type === ComponentType.ActionRow
+    ) {
+      return node;
+    }
+  }
+  return root;
+};
+
+/**
+ * What to call the selected node on screen. Gallery items carry no component
+ * type, so they are numbered by their place in the gallery instead.
+ */
+export const labelForNode = (
+  root: ContainerNode,
+  selectedId: NodeId | null,
+): string => {
+  const node = findNode(root, selectedId ?? root.id) ?? root;
+  if (isComponentNode(node)) return NODE_LABELS[node.type];
+
+  const parent = findParent(root, node.id);
+  const index =
+    parent && isComponentNode(parent) && parent.type === ComponentType.MediaGallery
+      ? parent.items.findIndex((item) => item.id === node.id) + 1
+      : 0;
+  return `Item ${index}`;
+};
