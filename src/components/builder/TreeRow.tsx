@@ -26,6 +26,8 @@ export interface TreeRowProps {
   sortable?: boolean;
   /** The root row sits flush with the drag handles below it. */
   flush?: boolean;
+  /** A card is hovering here, so the row shows where it would go in. */
+  dropBefore?: boolean;
   onActivate: () => void;
   /** Either a menu the caller renders around the trigger, or a direct action. */
   add?: { render: (trigger: ReactNode) => ReactNode } | { onAdd: () => void };
@@ -34,7 +36,7 @@ export interface TreeRowProps {
   onRemove?: () => void;
 }
 
-/** Shared shape only — each action states its own hover colour, so the two never collide. */
+/** Shape only. Each action sets its own hover colour, or the two fight. */
 const ACTION =
   "flex size-6 shrink-0 items-center justify-center rounded text-faint transition-colors";
 
@@ -49,6 +51,7 @@ export const TreeRow = ({
   selected = false,
   sortable = true,
   flush = false,
+  dropBefore = false,
   onActivate,
   add,
   addLabel = "Add",
@@ -82,9 +85,16 @@ export const TreeRow = ({
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={clsx("relative", isDragging && "z-10 opacity-40")}
     >
+      {dropBefore && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-px right-0 left-0 z-10 h-0.5 rounded-full bg-accent"
+        />
+      )}
       <div
         role="treeitem"
-        tabIndex={0}
+        data-tree-row={id}
+        tabIndex={selected ? 0 : -1}
         aria-level={depth + 1}
         aria-selected={group ? undefined : selected}
         aria-expanded={group ? expanded : undefined}
@@ -96,7 +106,7 @@ export const TreeRow = ({
           }
         }}
         className={clsx(
-          "group flex h-8 cursor-pointer items-center gap-1.5 rounded-md pr-1 text-[13px] transition-colors",
+          "group relative flex h-8 cursor-pointer items-center gap-1.5 rounded-md pr-1 text-[13px] transition-colors",
           // An open menu keeps the row lit, so it does not blink out mid-click.
           selected
             ? "bg-selected text-fg"
@@ -109,7 +119,7 @@ export const TreeRow = ({
             type="button"
             aria-label={`Reorder ${label}`}
             className={clsx(
-              "flex size-5 shrink-0 cursor-grab items-center justify-center text-faint active:cursor-grabbing",
+              "flex size-5 shrink-0 cursor-grab items-center justify-center text-faint opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 active:cursor-grabbing",
               !sortable && "invisible",
             )}
             onClick={(event) => event.stopPropagation()}
@@ -146,8 +156,13 @@ export const TreeRow = ({
           )}
         </span>
 
-        <div className="ml-auto flex shrink-0 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 has-data-[state=open]:opacity-100">
+        <div className="ml-auto flex shrink-0 items-center">
+          {/* Adding is how a new user gets started, so it always shows.
+              Deleting is not, and stays on hover. */}
           {add && ("render" in add ? add.render(addTrigger) : addTrigger)}
+        </div>
+
+        <div className="flex shrink-0 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 has-data-[state=open]:opacity-100">
           {onRemove && (
             <button
               type="button"
