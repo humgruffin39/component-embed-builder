@@ -9,7 +9,13 @@ import {
   toHexColor,
 } from "@/lib/generators/shared";
 
-export type OutputFormatId = "html" | "json" | "nextjs" | "astro" | "sveltekit";
+export type OutputFormatId =
+  | "html"
+  | "json"
+  | "nextjs"
+  | "astro"
+  | "sveltekit"
+  | "agent";
 
 export interface OutputFormat {
   id: OutputFormatId;
@@ -18,9 +24,12 @@ export interface OutputFormat {
   /** Where this snippet goes, for anyone who has not done this before. */
   hint: string;
   /** Shiki grammar for the snippet. */
-  language: "html" | "json" | "tsx" | "astro" | "svelte";
+  language: "html" | "json" | "tsx" | "astro" | "svelte" | "markdown";
   generate: (root: ContainerNode) => string;
 }
+
+/** The six characters an escaped `<` is written as, not the character itself. */
+const ESCAPED_LT = String.raw`\u003c`;
 
 /** Keeps a `</script>` inside the payload from closing the tag early. */
 const SAFE_JSON = 'JSON.stringify(embed).replace(/</g, "\\u003c")';
@@ -144,7 +153,6 @@ const svelteFormat: OutputFormat = {
 
   const embedJson = ${SAFE_JSON};
 
-  // Written out in parts so the compiler does not read it as the end of this block.
   const openTag = \`<script id="${EMBED_TAG.id}" type="${EMBED_TAG.mimeType}">\`;
   const closeTag = "<" + "/script>";
 </script>
@@ -158,7 +166,43 @@ ${indent(metaTagsHtml(root), 2)}
 `,
 };
 
+/**
+ * For handing to a coding agent instead of pasting by hand. It has to carry
+ * the rules, not just the payload: the exact tag, the escaping, and the fact
+ * that the crawler runs no JavaScript are what a model gets wrong.
+ */
+const promptFormat: OutputFormat = {
+  id: "agent",
+  language: "markdown",
+  label: "Agent",
+  filename: "Prompt",
+  hint: "Paste into your coding agent",
+  generate: (root) => `Add a Discord component embed to this page, so a shared link shows this card
+instead of the usual preview. Use whatever templating this project already uses.
+
+Both tags go in the page's \`<head>\`, rendered on the server. Discord's crawler
+runs no JavaScript.
+
+\`\`\`html
+${embedScriptHtml(root)}
+\`\`\`
+
+The \`id\` and \`type\` must match exactly. The JSON above already escapes \`<\`
+as \`${ESCAPED_LT}\`; keep it that way or the script tag ends early.
+
+Do not add keys to the JSON, \`id\` and \`custom_id\` included. Discord rejects the
+whole payload when it meets a key it does not expect.
+
+These are the fallback, shown when a client cannot render the embed:
+
+\`\`\`html
+${metaTagsHtml(root)}
+\`\`\`
+`,
+};
+
 export const OUTPUT_FORMATS: OutputFormat[] = [
+  promptFormat,
   htmlFormat,
   jsonFormat,
   nextFormat,
