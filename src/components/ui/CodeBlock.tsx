@@ -38,6 +38,50 @@ const Skeleton = ({ code }: { code: string }) => (
   </div>
 );
 
+/**
+ * The payload's line range inside a generated snippet.
+ *
+ * Shiki's HTML grammar treats the body of a `<script>` as plain text unless it
+ * is JavaScript, so the payload comes out one flat colour. Finding it here
+ * lets it be highlighted on its own and put back.
+ */
+const payloadLines = (code: string): [number, number] | null => {
+  const lines = code.split("\n");
+  // The line has to be the tag, not a string that contains one. The SvelteKit
+  // snippet builds the same tag out of a template literal.
+  const open = lines.findIndex(
+    (line) =>
+      line.trimStart().startsWith("<script") &&
+      line.includes('type="application/json"'),
+  );
+  if (open === -1) return null;
+  const close = lines.findIndex(
+    (line, index) => index > open && line.trim() === "</script>",
+  );
+  return close > open + 1 ? [open + 1, close - 1] : null;
+};
+
+const CODE_ELEMENT = /(<code[^>]*>)([\s\S]*)(<\/code>)/;
+
+/** Swaps a run of Shiki's one-per-line spans for the same lines from another pass. */
+const spliceLines = (
+  base: string,
+  patch: string,
+  from: number,
+  to: number,
+): string => {
+  const outer = CODE_ELEMENT.exec(base);
+  const inner = CODE_ELEMENT.exec(patch);
+  if (!outer || !inner) return base;
+
+  const lines = outer[2].split("\n");
+  if (lines.length <= to) return base;
+  lines.splice(from, to - from + 1, ...inner[2].split("\n"));
+
+  const start = outer.index + outer[1].length;
+  return base.slice(0, start) + lines.join("\n") + base.slice(start + outer[2].length);
+};
+
 interface Result {
   language: BundledLanguage;
   key: string;
@@ -67,11 +111,23 @@ export const CodeBlock = ({
   useEffect(() => {
     let current = true;
 
-    codeToHtml(code, {
-      lang: language,
+    const themes = {
       themes: { light: "github-light-default", dark: "vesper" },
       defaultColor: false,
-    })
+    } as const;
+
+    const render = async () => {
+      const base = await codeToHtml(code, { lang: language, ...themes });
+      const region = payloadLines(code);
+      if (!region) return base;
+
+      const [from, to] = region;
+      const payload = code.split("\n").slice(from, to + 1).join("\n");
+      const patch = await codeToHtml(payload, { lang: "json", ...themes });
+      return spliceLines(base, patch, from, to);
+    };
+
+    render()
       .then((html) => {
         if (current) setResult({ language, key, html });
       })

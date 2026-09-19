@@ -52,3 +52,42 @@ describe("output formats", () => {
     }
   });
 });
+
+/** Mirrors the detection in CodeBlock, which re-highlights the payload as JSON. */
+const payloadLines = (code: string): [number, number] | null => {
+  const lines = code.split("\n");
+  const open = lines.findIndex(
+    (line) =>
+      line.trimStart().startsWith("<script") &&
+      line.includes('type="application/json"'),
+  );
+  if (open === -1) return null;
+  const close = lines.findIndex(
+    (line, index) => index > open && line.trim() === "</script>",
+  );
+  return close > open + 1 ? [open + 1, close - 1] : null;
+};
+
+describe("the payload inside a snippet", () => {
+  it("is found in the formats that embed it raw", () => {
+    for (const id of ["html", "agent"]) {
+      const code = format(id).generate(document());
+      const region = payloadLines(code);
+      expect(region).not.toBeNull();
+
+      const payload = code
+        .split("\n")
+        .slice(region![0], region![1] + 1)
+        .join("\n");
+      expect(JSON.parse(payload)).toHaveProperty("component.type", 17);
+    }
+  });
+
+  it("is left alone where the language already highlights it", () => {
+    // SvelteKit builds the same tag from a template literal, which must not
+    // be mistaken for the real thing.
+    for (const id of ["json", "nextjs", "astro", "sveltekit"]) {
+      expect(payloadLines(format(id).generate(document()))).toBeNull();
+    }
+  });
+});
