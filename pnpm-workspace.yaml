@@ -1,4 +1,5 @@
+# None of these need to run install scripts.
 allowBuilds:
-  '@central-icons-react/round-filled-radius-3-stroke-2': set this to true or false
+  '@central-icons-react/round-filled-radius-3-stroke-2': false
   sharp: false
   unrs-resolver: false

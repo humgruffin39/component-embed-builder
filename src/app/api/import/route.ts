@@ -8,7 +8,11 @@ import { fetchPublicUrl } from "@/lib/server/fetchPage";
 import { clientKey, rateLimit } from "@/lib/server/rateLimit";
 import { normalizeUrl } from "@/lib/url";
 
+// node:dns is needed to resolve a host before fetching it, which rules out
+// the edge runtime. A fetch plus one redirect hop can take a few seconds.
 export const runtime = "nodejs";
+export const maxDuration = 15;
+export const dynamic = "force-dynamic";
 
 const RATE = { limit: 10, windowMs: 60_000 } as const;
 
@@ -69,7 +73,7 @@ export async function POST(request: Request) {
 
   const payload = parsePayload(parsed);
   if (!payload.ok) {
-    return fail(422, `Discord would reject this payload — ${payload.error}`);
+    return fail(422, `Discord would reject this payload. ${payload.error}`);
   }
 
   return NextResponse.json<ImportResponse>({ payload: payload.payload, source });
