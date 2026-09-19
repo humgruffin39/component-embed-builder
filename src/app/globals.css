@@ -105,6 +105,17 @@
   }
 }
 
+/**
+ * The shell is exactly one viewport tall and everything inside it scrolls on
+ * its own, so the page itself never needs to move. Locking it kills the
+ * rubber-band at both edges and the pull-to-refresh that comes with it.
+ */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--bg);
   color: var(--fg);
@@ -121,6 +132,12 @@ body {
 }
 
 /* Scrollbars stay out of the way until a pane is hovered. */
+/* Reaching the end of a pane must not hand the scroll to whatever is behind
+   it, which is what drags the page around. */
+.scroll-area {
+  overscroll-behavior: contain;
+}
+
 @supports (scrollbar-width: thin) {
   .scroll-area {
     scrollbar-width: thin;

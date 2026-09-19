@@ -138,7 +138,7 @@ export const MobileShell = ({
         description="Settings for the selected component"
       >
         <div className="flex max-h-[58dvh] flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="scroll-area min-h-0 flex-1 overflow-y-auto">
             <InspectorPanel root={root} hideHeader />
           </div>
           {canRemove && (
