@@ -180,10 +180,12 @@ const Tile = ({
   item,
   full,
   draggable,
+  onAdded,
 }: {
   item: PaletteItem;
   full: boolean;
   draggable: boolean;
+  onAdded?: () => void;
 }) => {
   const disabled = item.disabled || full;
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -200,7 +202,10 @@ const Tile = ({
       type="button"
       title={item.description}
       disabled={disabled}
-      onClick={() => item.add()}
+      onClick={() => {
+        item.add();
+        onAdded?.();
+      }}
       className={clsx(
         "group/tile flex text-left",
         draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
@@ -227,11 +232,14 @@ export const Palette = ({
   total,
   draggable = true,
   columns = 2,
+  onAdded,
 }: {
   root: ContainerNode;
   total: number;
   draggable?: boolean;
   columns?: number;
+  /** Lets a sheet close itself once something has been placed. */
+  onAdded?: () => void;
 }) => {
   const { destination, items } = usePalette(root);
   const full = total >= LIMITS.components;
@@ -257,6 +265,7 @@ export const Palette = ({
             item={item}
             full={full}
             draggable={draggable}
+            onAdded={onAdded}
           />
         ))}
       </div>

@@ -8,7 +8,14 @@ import { type ContainerNode, toPayload } from "@/lib/document";
 import { nodeAtPath, pathOfNode } from "@/lib/tree";
 import { useBuilder } from "@/store/builder";
 
-export const PreviewPanel = ({ root }: { root: ContainerNode }) => {
+export const PreviewPanel = ({
+  root,
+  onPick,
+}: {
+  root: ContainerNode;
+  /** Called after a tap selects something, so a phone can open the editor. */
+  onPick?: () => void;
+}) => {
   const { previewTheme, previewWidth, setPreviewTheme, setPreviewWidth } =
     useBuilder();
   const selectedId = useBuilder((state) => state.selectedId);
@@ -53,7 +60,9 @@ export const PreviewPanel = ({ root }: { root: ContainerNode }) => {
           platform={previewWidth}
           onSelectPath={(path) => {
             const node = nodeAtPath(root, path);
-            if (node) select(node.id);
+            if (!node) return;
+            select(node.id);
+            onPick?.();
           }}
           className={clsx("mx-auto", previewWidth === "mobile" && "max-w-85")}
         />
