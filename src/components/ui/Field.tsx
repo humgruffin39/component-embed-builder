@@ -120,7 +120,7 @@ export const Segmented = <T extends string>({
         type="button"
         onClick={() => onChange(option.value)}
         className={clsx(
-          "rounded px-2.5 py-1 text-[12px] font-medium transition-colors",
+          "rounded px-2.5 py-1 text-[12px] font-medium transition-colors max-lg:min-h-9 max-lg:px-3",
           option.value === value
             ? "bg-selected text-fg"
             : "text-muted hover:bg-selected/40 hover:text-fg",

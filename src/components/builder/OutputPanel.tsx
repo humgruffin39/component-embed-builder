@@ -64,7 +64,7 @@ export const OutputPanel = ({ root, issues }: OutputPanelProps) => {
               type="button"
               onClick={() => setFormatId(entry.id)}
               className={clsx(
-                "flex items-center gap-1.5 rounded px-2 py-1 text-[12px] font-medium transition-colors",
+                "flex items-center gap-1.5 rounded px-2 py-1 text-[12px] font-medium transition-colors max-lg:min-h-9 max-lg:px-3",
                 entry.id === formatId
                   ? "bg-selected text-fg"
                   : "text-muted hover:bg-selected/40 hover:text-fg",

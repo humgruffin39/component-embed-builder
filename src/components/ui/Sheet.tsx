@@ -10,6 +10,8 @@ interface SheetProps {
   title: string;
   /** Shown beside the title, for a count or the thing being edited. */
   detail?: string;
+  /** Read out after the title. Falls back to the detail line. */
+  description?: string;
   children: ReactNode;
   className?: string;
 }
@@ -20,6 +22,7 @@ export const Sheet = ({
   onOpenChange,
   title,
   detail,
+  description,
   children,
   className,
 }: SheetProps) => (
@@ -33,11 +36,14 @@ export const Sheet = ({
           className,
         )}
       >
-        <div className="flex shrink-0 flex-col items-center pt-2 pb-1">
+        <Dialog.Close
+          aria-label="Close"
+          className="flex shrink-0 cursor-pointer flex-col items-center py-3"
+        >
           <span aria-hidden className="h-1 w-9 rounded-full bg-line-strong" />
-        </div>
+        </Dialog.Close>
 
-        <div className="flex shrink-0 items-baseline gap-2 px-4 pt-1 pb-2">
+        <div className="flex shrink-0 items-center gap-2 px-4 pb-1">
           <Dialog.Title className="text-[14px] font-semibold text-fg">
             {title}
           </Dialog.Title>
@@ -46,10 +52,14 @@ export const Sheet = ({
               {detail}
             </span>
           )}
-          <Dialog.Close className="ml-auto -mr-1 rounded-md px-2 py-1 text-[13px] text-muted transition-colors hover:bg-selected hover:text-fg">
+          <Dialog.Close className="-mr-2 ml-auto flex h-11 items-center rounded-md px-3 text-[13px] font-medium text-muted transition-colors hover:bg-selected hover:text-fg">
             Done
           </Dialog.Close>
         </div>
+
+        <Dialog.Description className="sr-only">
+          {description ?? detail ?? `${title} panel`}
+        </Dialog.Description>
 
         <div className="min-h-0 flex-1 overflow-hidden pb-[env(safe-area-inset-bottom)]">
           {children}
