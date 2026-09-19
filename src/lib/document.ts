@@ -22,6 +22,18 @@ export type NodeId = string;
 let sequence = 0;
 export const nextId = (): NodeId => `n${++sequence}`;
 
+/**
+ * Starts the numbering over.
+ *
+ * The counter is module state, so whoever builds nodes first decides where a
+ * later document starts. On the server the page's own embed is built before
+ * the store builds its first document. On the client that embed is never built
+ * at all. Without a reset the two sides disagree, and hydration fails.
+ */
+export const resetIds = (): void => {
+  sequence = 0;
+};
+
 interface NodeBase {
   id: NodeId;
 }

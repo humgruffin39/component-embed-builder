@@ -32,6 +32,17 @@ export const useUrlSync = (root: ContainerNode): boolean => {
     if (decoded) replaceDocument(decoded);
   }, [replaceDocument]);
 
+  // replaceState does not fire this; the browser's own back and forward do.
+  useEffect(() => {
+    const onHashChange = () => {
+      const encoded = readHash(window.location.hash);
+      const decoded = encoded ? decodeDocument(encoded) : null;
+      if (decoded) replaceDocument(decoded);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, [replaceDocument]);
+
   useEffect(() => {
     if (!restored.current) return;
 

@@ -8,8 +8,8 @@ import { useBuilder } from "@/store/builder";
  * own text history is already broken and intercepting the shortcut everywhere
  * is what makes it behave consistently.
  *
- * Redo answers to both conventions — Ctrl/Cmd+Shift+Z and the Windows Ctrl+Y.
- * Cmd+Y is left alone: on macOS it belongs to the browser.
+ * Redo answers to Ctrl/Cmd+Shift+Z and to the Windows Ctrl+Y. Cmd+Y is left
+ * alone. On macOS the browser has it.
  */
 export const useUndoRedo = (): void => {
   const undo = useBuilder((state) => state.undo);

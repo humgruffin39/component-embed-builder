@@ -12,15 +12,21 @@ import {
   createSeparator,
   createTextDisplay,
   createThumbnail,
+  resetIds,
 } from "@/lib/document";
 import {
   type InsertableType,
   type TreeNode,
+  ancestorsOf,
   createContainerChild,
   findNode,
   findOwner,
+  findParent,
+  hasEmptyRequiredSlot,
   isComponentNode,
   moveWithin,
+  slotAccepts,
+  slotsFor,
 } from "@/lib/tree";
 
 export type PreviewTheme = "light" | "dark";
@@ -29,36 +35,52 @@ export type AccessoryKind = "thumbnail" | "button";
 export type SectionAddition = "text" | AccessoryKind;
 
 /**
- * Undo history. It lives outside the store because a snapshot is just the
- * previous `root` object: immer already gives us structural sharing, so
- * keeping them costs almost nothing and never needs to be rendered.
+ * Undo history. A snapshot is just the previous `root` object, so immer's
+ * structural sharing makes them nearly free.
+ *
+ * It lives in the store, not in module scope, so replacing the document can
+ * clear it. Otherwise undo walks back into a document the user has left.
  */
 const HISTORY_LIMIT = 100;
+const COALESCE_MS = 600;
 
-const past: ContainerNode[] = [];
-let future: ContainerNode[] = [];
-let lastKey: string | null = null;
-let lastAt = 0;
+interface History {
+  past: ContainerNode[];
+  future: ContainerNode[];
+  /** Which field the last edit touched, for collapsing a run of keystrokes. */
+  lastKey: string | null;
+  lastAt: number;
+}
+
+const emptyHistory = (): History => ({
+  past: [],
+  future: [],
+  lastKey: null,
+  lastAt: 0,
+});
 
 /**
  * Records the state before a change. Repeated edits to the same field within
  * a short window collapse into one entry, so undo steps back a word at a time
  * rather than a keystroke at a time.
  */
-const record = (root: ContainerNode, key?: string) => {
+const record = (history: History, root: ContainerNode, key?: string) => {
   const now = Date.now();
-  const coalesce = key != null && key === lastKey && now - lastAt < 600;
-  lastKey = key ?? null;
-  lastAt = now;
+  const coalesce =
+    key != null && key === history.lastKey && now - history.lastAt < COALESCE_MS;
+  history.lastKey = key ?? null;
+  history.lastAt = now;
   if (coalesce) return;
 
-  past.push(root);
-  if (past.length > HISTORY_LIMIT) past.shift();
-  future = [];
+  history.past.push(root);
+  if (history.past.length > HISTORY_LIMIT) history.past.shift();
+  history.future = [];
 };
 
 interface BuilderState {
   root: ContainerNode;
+  /** Not rendered; kept here so it can be reset with the document. */
+  history: History;
   selectedId: NodeId | null;
   /** Ids of group rows the user has folded shut in the tree. */
   collapsed: Record<NodeId, boolean>;
@@ -70,7 +92,7 @@ interface BuilderState {
   setPreviewTheme: (theme: PreviewTheme) => void;
   setPreviewWidth: (width: PreviewWidth) => void;
 
-  addComponent: (type: InsertableType) => void;
+  addComponent: (type: InsertableType, index?: number) => void;
   removeNode: (id: NodeId) => void;
   moveNode: (activeId: NodeId, overId: NodeId) => void;
   updateNode: (id: NodeId, patch: Record<string, unknown>) => void;
@@ -85,17 +107,19 @@ interface BuilderState {
   redo: () => void;
 }
 
-/** Valid on load, so the first thing a user sees is working output. */
-const defaultRoot = (): ContainerNode =>
-  createContainer([
+/** Valid on load, and says enough that nobody has to guess what this is. */
+const defaultRoot = (): ContainerNode => {
+  resetIds();
+  return createContainer([
     createTextDisplay(
-      "# Your page title\nThe line that sits under it, with **markdown**.",
+      "# Your headline\nThe line underneath it. **Bold**, *italic*, [links](https://discord.com) and lists all work.",
     ),
     createSeparator(),
     createTextDisplay(
-      "-# Add a section, a gallery or link buttons from the panel on the left.",
+      "- Click any part of the preview to edit it\n- Use + to add a component\n- Saved in the URL. Copy the link to keep it.",
     ),
   ]);
+};
 
 const initial = { root: defaultRoot() };
 
@@ -107,6 +131,13 @@ const restore = (state: BuilderState, root: ContainerNode) => {
   }
 };
 
+/** Drops fold state for rows that no longer exist, so the map cannot grow forever. */
+const pruneCollapsed = (state: BuilderState) => {
+  for (const id of Object.keys(state.collapsed)) {
+    if (!findNode(state.root, id)) delete state.collapsed[id];
+  }
+};
+
 /** Selects the node that takes the place of a removed one. */
 const neighbourOf = (list: TreeNode[], index: number): NodeId | null =>
   list[index]?.id ?? list[index - 1]?.id ?? null;
@@ -114,6 +145,7 @@ const neighbourOf = (list: TreeNode[], index: number): NodeId | null =>
 export const useBuilder = create<BuilderState>()(
   immer((set, get) => ({
     ...initial,
+    history: emptyHistory(),
     selectedId: initial.root.id,
     collapsed: {},
     previewTheme: "dark",
@@ -122,6 +154,13 @@ export const useBuilder = create<BuilderState>()(
     select: (id) =>
       set((state) => {
         state.selectedId = id;
+        // Selecting from the preview has to reveal the row, not leave it folded
+        // away inside a collapsed group.
+        if (id) {
+          for (const ancestor of ancestorsOf(state.root, id)) {
+            delete state.collapsed[ancestor.id];
+          }
+        }
       }),
 
     toggleCollapsed: (id) =>
@@ -139,44 +178,80 @@ export const useBuilder = create<BuilderState>()(
         state.previewWidth = width;
       }),
 
-    addComponent: (type) =>
+    addComponent: (type, index) =>
       set((state) => {
-        record(get().root);
+        record(state.history, get().root);
         const node = createContainerChild(type);
-        state.root.components.push(node);
+        const at = index ?? state.root.components.length;
+        state.root.components.splice(at, 0, node);
         state.selectedId = node.id;
       }),
 
     removeNode: (id) =>
       set((state) => {
-        record(get().root);
-        const owner = findOwner(state.root, id);
-        if (!owner) return;
-        owner.list.splice(owner.index, 1);
-        if (state.selectedId === id) {
+        if (!findOwner(state.root, id)) return;
+        record(state.history, get().root);
+
+        // Taking the last child out of a section, gallery or action row would
+        // leave a shape Discord rejects, so the parent goes with it.
+        let target: NodeId = id;
+        let owner = findOwner(state.root, target)!;
+        for (;;) {
+          const parent = findParent(state.root, target);
+          owner = findOwner(state.root, target)!;
+          owner.list.splice(owner.index, 1);
+          if (parent && hasEmptyRequiredSlot(parent)) {
+            target = parent.id;
+            continue;
+          }
+          break;
+        }
+
+        if (!state.selectedId || !findNode(state.root, state.selectedId)) {
           state.selectedId = neighbourOf(owner.list, owner.index) ?? state.root.id;
         }
+        pruneCollapsed(state);
       }),
 
     moveNode: (activeId, overId) =>
       set((state) => {
-        record(get().root);
         const from = findOwner(state.root, activeId);
-        const to = findOwner(state.root, overId);
-        if (!from || !to || from.list !== to.list) return;
-        moveWithin(from.list, from.index, to.index);
+        if (!from) return;
+        const node = from.list[from.index];
+
+        // The row dropped on is usually a sibling, but it can also be the
+        // group itself, which means "put it inside".
+        const over = findNode(state.root, overId);
+        const to =
+          over && slotAccepts(over, slotsFor(over), node)
+            ? { parent: over, list: slotsFor(over), index: slotsFor(over).length }
+            : findOwner(state.root, overId);
+        if (!to || !slotAccepts(to.parent, to.list, node)) return;
+        if (from.list === to.list && from.index === to.index) return;
+
+        record(state.history, get().root);
+        if (from.list === to.list) {
+          moveWithin(from.list, from.index, to.index);
+        } else {
+          from.list.splice(from.index, 1);
+          to.list.splice(to.index, 0, node);
+          if (hasEmptyRequiredSlot(from.parent)) {
+            const orphan = findOwner(state.root, from.parent.id);
+            if (orphan) orphan.list.splice(orphan.index, 1);
+          }
+        }
       }),
 
     updateNode: (id, patch) =>
       set((state) => {
-        record(get().root, `${id}:${Object.keys(patch).join(",")}`);
         const node = findNode(state.root, id);
-        if (node) Object.assign(node, patch);
+        if (!node) return;
+        record(state.history, get().root, `${id}:${Object.keys(patch).join(",")}`);
+        Object.assign(node, patch);
       }),
 
     addToSection: (sectionId, addition) =>
       set((state) => {
-        record(get().root);
         const node = findNode(state.root, sectionId);
         if (
           !node ||
@@ -185,6 +260,7 @@ export const useBuilder = create<BuilderState>()(
         ) {
           return;
         }
+        record(state.history, get().root);
         if (addition === "text") {
           const text = createTextDisplay();
           node.components.push(text);
@@ -199,7 +275,6 @@ export const useBuilder = create<BuilderState>()(
 
     addGalleryItem: (galleryId) =>
       set((state) => {
-        record(get().root);
         const node = findNode(state.root, galleryId);
         if (
           !node ||
@@ -208,6 +283,7 @@ export const useBuilder = create<BuilderState>()(
         ) {
           return;
         }
+        record(state.history, get().root);
         const item = createGalleryItem();
         node.items.push(item);
         state.selectedId = item.id;
@@ -215,11 +291,15 @@ export const useBuilder = create<BuilderState>()(
 
     addButton: (rowId) =>
       set((state) => {
-        record(get().root);
         const node = findNode(state.root, rowId);
-        if (!node || !isComponentNode(node) || node.type !== ComponentType.ActionRow) {
+        if (
+          !node ||
+          !isComponentNode(node) ||
+          node.type !== ComponentType.ActionRow
+        ) {
           return;
         }
+        record(state.history, get().root);
         const button = createButton();
         node.components.push(button);
         state.selectedId = button.id;
@@ -227,7 +307,8 @@ export const useBuilder = create<BuilderState>()(
 
     replaceDocument: (root) =>
       set((state) => {
-        record(get().root);
+        // A different document entirely, so the old history no longer applies.
+        state.history = emptyHistory();
         state.root = root;
         state.selectedId = root.id;
         state.collapsed = {};
@@ -235,19 +316,19 @@ export const useBuilder = create<BuilderState>()(
 
     undo: () =>
       set((state) => {
-        const previous = past.pop();
+        const previous = state.history.past.pop();
         if (!previous) return;
-        future.push(get().root);
-        lastKey = null;
+        state.history.future.push(get().root);
+        state.history.lastKey = null;
         restore(state, previous);
       }),
 
     redo: () =>
       set((state) => {
-        const next = future.pop();
+        const next = state.history.future.pop();
         if (!next) return;
-        past.push(get().root);
-        lastKey = null;
+        state.history.past.push(get().root);
+        state.history.lastKey = null;
         restore(state, next);
       }),
   })),
