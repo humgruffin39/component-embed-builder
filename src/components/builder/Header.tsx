@@ -25,15 +25,15 @@ export const Header = () => (
           Docs
           <ExternalIcon size={13} ariaHidden />
         </a>
-        <ImportPopover />
         <a
           href={REPO_URL}
           target="_blank"
           rel="noopener noreferrer"
           className={`hidden sm:inline-flex ${buttonClasses("secondary", "sm")}`}
         >
-          GitHub
+          Source
         </a>
+        <ImportPopover />
         <SharePopover />
       </div>
   </header>
