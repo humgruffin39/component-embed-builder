@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { MediaGalleryComponent } from "@/lib/payload";
 import { Media } from "./Media";
+import { childPath } from "./selection";
 
 /**
  * Discord's gallery layout, read off the rendered examples in its docs: one
@@ -13,7 +14,10 @@ const columnsFor = (count: number): number => {
   return 3;
 };
 
-export const MediaGallery = ({ items }: MediaGalleryComponent) => (
+export const MediaGallery = ({
+  path,
+  items,
+}: MediaGalleryComponent & { path: string }) => (
   <div
     className={clsx(
       "dc-gallery",
@@ -27,6 +31,8 @@ export const MediaGallery = ({ items }: MediaGalleryComponent) => (
     {items.map((item, index) => (
       <Media
         key={index}
+        path={childPath(path, "items", index)}
+        label={`Item ${index + 1}`}
         url={item.media.url}
         description={item.description ?? undefined}
         spoiler={item.spoiler}
