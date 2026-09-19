@@ -269,12 +269,6 @@ export const Palette = ({
           />
         ))}
       </div>
-
-      {draggable && (
-        <p className="mt-2 px-1 text-[11px] leading-snug text-faint">
-          Click to add, or drag onto the tree.
-        </p>
-      )}
     </div>
   );
 };
