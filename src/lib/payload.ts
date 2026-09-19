@@ -71,9 +71,3 @@ export interface ContainerComponent {
 export interface ComponentEmbedPayload {
   component: ContainerComponent;
 }
-
-export type AnyComponent =
-  | ContainerComponent
-  | ContainerChild
-  | ThumbnailComponent
-  | ButtonComponent;

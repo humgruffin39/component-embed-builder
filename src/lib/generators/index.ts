@@ -15,6 +15,8 @@ export interface OutputFormat {
   id: OutputFormatId;
   label: string;
   filename: string;
+  /** Where this snippet goes, for anyone who has not done this before. */
+  hint: string;
   /** Shiki grammar for the snippet. */
   language: "html" | "json" | "tsx" | "astro" | "svelte";
   generate: (root: ContainerNode) => string;
@@ -32,6 +34,7 @@ const htmlFormat: OutputFormat = {
   language: "html",
   label: "HTML",
   filename: "index.html",
+  hint: "Both tags go in your <head>",
   generate: (root) => `${metaTagsHtml(root)}\n\n${embedScriptHtml(root)}`,
 };
 
@@ -40,6 +43,7 @@ const jsonFormat: OutputFormat = {
   language: "json",
   label: "JSON",
   filename: "embed.json",
+  hint: "Host this, then link it from your <head>",
   generate: formatPayload,
 };
 
@@ -48,6 +52,7 @@ const nextFormat: OutputFormat = {
   language: "tsx",
   label: "Next.js",
   filename: "app/page.tsx",
+  hint: "Replaces your page file",
   generate: (root) => {
     const { title, description, image } = deriveFallback(root);
     const themeColor = toHexColor(root.accentColor);
@@ -108,6 +113,7 @@ const astroFormat: OutputFormat = {
   language: "astro",
   label: "Astro",
   filename: "src/pages/index.astro",
+  hint: "Replaces your page file",
   generate: (root) => `---
 const embed = ${formatPayload(root)};
 
@@ -132,6 +138,7 @@ const svelteFormat: OutputFormat = {
   language: "svelte",
   label: "SvelteKit",
   filename: "src/routes/+page.svelte",
+  hint: "Replaces your page file",
   generate: (root) => `<script lang="ts">
   const embed = ${indent(formatPayload(root), 2).trimStart()};
 
