@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { EMBED_TAG } from "@/lib/constants";
 import { escapeForScript, minifyPayload, toHexColor } from "@/lib/generators/shared";
 import { selfEmbed } from "@/lib/selfEmbed";
@@ -41,7 +42,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
       </head>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
