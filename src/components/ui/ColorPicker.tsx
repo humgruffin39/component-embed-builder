@@ -103,6 +103,21 @@ export const ColorPicker = ({ value, onChange }: ColorPickerProps) => {
   const [hsv, setHsv] = useState<Hsv>(() => rgbToHsv(numberToRgb(value)));
   const [draft, setDraft] = useState<string | null>(null);
   const emitted = useRef(value);
+  const hexField = useRef<HTMLInputElement>(null);
+
+  // Opening the picker to type a value should not cost a click on the field.
+  // Skipped without a pointer, where focusing a text field raises the keyboard
+  // over the thing being picked.
+  useEffect(() => {
+    if (!window.matchMedia("(hover: hover)").matches) return;
+    // Not requestAnimationFrame: that never fires while the page is not being
+    // painted, and focus should not wait on a repaint.
+    const timer = setTimeout(() => {
+      hexField.current?.focus();
+      hexField.current?.select();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Adopt a colour set from outside, but hold on to the hue: grey and black
   // carry none, and losing it would snap the square back to red.
@@ -185,6 +200,7 @@ export const ColorPicker = ({ value, onChange }: ColorPickerProps) => {
       <div className="flex items-center gap-2">
         <span className="shrink-0 text-[12px] font-medium text-faint">HEX</span>
         <input
+          ref={hexField}
           value={draft ?? hex}
           spellCheck={false}
           aria-label="Hex value"

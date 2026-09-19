@@ -30,6 +30,8 @@ export const ContainerInspector = ({ node }: { node: ContainerNode }) => {
               onOpenChange={setOpen}
               align="start"
               width={248}
+              // The picker puts focus in its own hex field.
+              onOpenAutoFocus={(event) => event.preventDefault()}
               trigger={
                 <button
                   type="button"

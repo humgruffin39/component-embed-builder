@@ -10,6 +10,8 @@ interface PopoverProps {
   onOpenChange?: (open: boolean) => void;
   align?: "start" | "center" | "end";
   width?: number;
+  /** Radix focuses the first tabbable child; prevent it to direct focus yourself. */
+  onOpenAutoFocus?: (event: Event) => void;
 }
 
 export const Popover = ({
@@ -19,12 +21,14 @@ export const Popover = ({
   onOpenChange,
   align = "end",
   width = 340,
+  onOpenAutoFocus,
 }: PopoverProps) => (
   <PopoverPrimitive.Root open={open} onOpenChange={onOpenChange}>
     <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
         align={align}
+        onOpenAutoFocus={onOpenAutoFocus}
         sideOffset={6}
         style={{ width }}
         collisionPadding={8}
