@@ -22,7 +22,6 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     url: SITE_URL,
   },
-  twitter: { card: "summary_large_image" },
   other: { "theme-color": toHexColor(embed.accentColor) ?? "#5865f2" },
 };
 
