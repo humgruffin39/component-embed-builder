@@ -11,10 +11,10 @@
   --line-strong: #d2d2d9;
   --fg: #171717;
   --muted: #666666;
-  --faint: #8f8f8f;
+  --faint: #6b6b6b;
   --accent: #0072f5;
-  --danger: #e5484d;
-  --warn: #b7791f;
+  --danger: #d21e24;
+  --warn: #926119;
   --selected: #ececf0;
 
   /* Depth. Light needs little; dark needs more, plus a top highlight, or a
@@ -32,7 +32,7 @@
     --line-strong: #303030;
     --fg: #ededed;
     --muted: #a1a1a1;
-    --faint: #7a7a7a;
+    --faint: #848484;
     --accent: #3291ff;
     --danger: #ff6369;
     --warn: #f5a623;
@@ -81,6 +81,14 @@
 
 * {
   min-width: 0;
+}
+
+/* Controls that appear on hover have to be there from the start on touch,
+   or they cannot be reached at all. */
+@media (hover: none) {
+  .hover-reveal {
+    opacity: 1 !important;
+  }
 }
 
 body {
