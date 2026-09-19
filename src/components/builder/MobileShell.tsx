@@ -78,7 +78,7 @@ export const MobileShell = ({
   const canRemove = selectedId !== null && selectedId !== root.id;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2 p-2 pt-0 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
+    <div className="restore-hidden flex min-h-0 flex-1 flex-col gap-2 p-2 pt-0 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
       <div className="min-h-0 flex-1 overflow-hidden rounded-xl bg-panel shadow-raised">
         {/* Tapping a component is an intent to edit it, so the sheet opens
             with it rather than making the nav a second stop. */}

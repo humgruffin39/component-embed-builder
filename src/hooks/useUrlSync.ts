@@ -27,9 +27,12 @@ export const useUrlSync = (root: ContainerNode): boolean => {
     restored.current = true;
 
     const encoded = readHash(window.location.hash);
-    if (!encoded) return;
-    const decoded = decodeDocument(encoded);
+    const decoded = encoded ? decodeDocument(encoded) : null;
     if (decoded) replaceDocument(decoded);
+
+    // The head script hid the default document on the way in. Whether the hash
+    // decoded or turned out to be rubbish, there is nothing left to wait for.
+    delete document.documentElement.dataset.restoring;
   }, [replaceDocument]);
 
   // replaceState does not fire this; the browser's own back and forward do.

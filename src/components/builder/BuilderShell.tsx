@@ -8,6 +8,7 @@ import { InspectorPanel } from "@/components/builder/InspectorPanel";
 import { MobileShell } from "@/components/builder/MobileShell";
 import { OutputPanel } from "@/components/builder/OutputPanel";
 import { PreviewPanel } from "@/components/builder/PreviewPanel";
+import { RestoreSkeleton } from "@/components/builder/RestoreSkeleton";
 import { TreePanel } from "@/components/builder/TreePanel";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useUrlSync } from "@/hooks/useUrlSync";
@@ -69,11 +70,13 @@ export const BuilderShell = () => {
         </p>
       )}
 
+      <RestoreSkeleton />
+
       <MobileShell root={root} issues={issues} />
 
       {/* Group writes its own inline display, so the class that hides it has
           to sit on a wrapper or the phone gets the desktop layout as well. */}
-      <div className="hidden min-h-0 flex-1 lg:flex">
+      <div className="restore-hidden hidden min-h-0 flex-1 lg:flex">
         <Group
           id="builder-columns"
           orientation="horizontal"

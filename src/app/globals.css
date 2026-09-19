@@ -83,6 +83,20 @@
   min-width: 0;
 }
 
+/* Swapped by the head script, before paint, so a shared link never flashes
+   the default document. */
+.restore-skeleton {
+  display: none;
+}
+
+[data-restoring] .restore-skeleton {
+  display: flex;
+}
+
+[data-restoring] .restore-hidden {
+  display: none;
+}
+
 /* Controls that appear on hover have to be there from the start on touch,
    or they cannot be reached at all. */
 @media (hover: none) {

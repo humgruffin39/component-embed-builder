@@ -30,8 +30,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} h-full antialiased`}
+      // The head script writes data-restoring here before React hydrates, so
+      // this element alone is allowed to differ from what the server sent.
+      suppressHydrationWarning
     >
       <head>
+        {/* Runs before anything paints. The hash never reaches the server, so
+            without this a shared link shows the default document first. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(/[#&]s=/.test(location.hash))document.documentElement.dataset.restoring=''}catch(e){}",
+          }}
+        />
         {/* The tool's own link preview, rendered server-side for the crawler. */}
         <script
           id={EMBED_TAG.id}
