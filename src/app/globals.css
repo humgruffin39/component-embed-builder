@@ -130,6 +130,13 @@ body {
   }
 }
 
+/* Gentler than Tailwind's own pulse, which is too busy behind code. */
+@keyframes pulse-soft {
+  50% {
+    opacity: 0.55;
+  }
+}
+
 @keyframes sheet-in {
   from {
     transform: translateY(100%);
