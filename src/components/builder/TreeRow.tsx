@@ -36,9 +36,12 @@ export interface TreeRowProps {
   onRemove?: () => void;
 }
 
-/** Shape only. Each action sets its own hover colour, or the two fight. */
+/**
+ * Shape only. Each action sets its own hover colour, or the two fight. 24px is
+ * the smallest WCAG allows, so a thumb gets the roomier size instead.
+ */
 const ACTION =
-  "flex size-6 shrink-0 items-center justify-center rounded text-faint transition-colors";
+  "flex size-6 max-lg:size-9 shrink-0 items-center justify-center rounded text-faint transition-colors";
 
 export const TreeRow = ({
   id,
@@ -106,7 +109,7 @@ export const TreeRow = ({
           }
         }}
         className={clsx(
-          "group relative flex h-8 cursor-pointer items-center gap-1.5 rounded-md pr-1 text-[13px] transition-colors",
+          "group relative flex h-8 max-lg:h-11 cursor-pointer items-center gap-1.5 rounded-md pr-1 text-[13px] transition-colors",
           // An open menu keeps the row lit, so it does not blink out mid-click.
           selected
             ? "bg-selected text-fg"
@@ -119,7 +122,7 @@ export const TreeRow = ({
             type="button"
             aria-label={`Reorder ${label}`}
             className={clsx(
-              "flex size-5 shrink-0 cursor-grab items-center justify-center text-faint opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 active:cursor-grabbing",
+              "hover-reveal flex size-5 max-lg:size-9 shrink-0 cursor-grab items-center justify-center text-faint opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 active:cursor-grabbing",
               !sortable && "invisible",
             )}
             onClick={(event) => event.stopPropagation()}
@@ -157,12 +160,11 @@ export const TreeRow = ({
         </span>
 
         <div className="ml-auto flex shrink-0 items-center">
-          {/* Adding is how a new user gets started, so it always shows.
-              Deleting is not, and stays on hover. */}
+          {/* Adding is how a new user gets started, so it always shows. */}
           {add && ("render" in add ? add.render(addTrigger) : addTrigger)}
         </div>
 
-        <div className="flex shrink-0 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 has-data-[state=open]:opacity-100">
+        <div className="hover-reveal flex shrink-0 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 has-data-[state=open]:opacity-100">
           {onRemove && (
             <button
               type="button"

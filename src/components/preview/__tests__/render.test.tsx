@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ComponentEmbed } from "@/components/preview";
 import {
@@ -131,5 +132,20 @@ describe("client differences", () => {
       />,
     );
     expect(html).not.toContain("dc-media__alt");
+  });
+});
+
+describe("touch reachability", () => {
+  it("marks the hover-revealed controls so touch can force them visible", () => {
+    // Without .hover-reveal these sit at opacity 0 forever on a phone, which
+    // put delete and reorder out of reach.
+    const css = readFileSync("src/app/globals.css", "utf8");
+    expect(css).toContain("@media (hover: none)");
+    expect(css).toContain(".hover-reveal");
+
+    const row = readFileSync("src/components/builder/TreeRow.tsx", "utf8");
+    const revealed = row.match(/hover-reveal/g) ?? [];
+    const gated = row.match(/group-hover:opacity-100/g) ?? [];
+    expect(revealed.length).toBe(gated.length);
   });
 });
