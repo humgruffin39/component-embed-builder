@@ -7,7 +7,7 @@ import { CONTROL_HEIGHT } from "@/components/ui/control";
 
 /** Shared skin. Height comes from the token for inputs; a textarea is sized by its rows. */
 const CONTROL =
-  "w-full rounded-md border border-line bg-bg px-2.5 text-[13px] text-fg transition-colors placeholder:text-faint focus:border-line-strong";
+  "w-full rounded-md border border-line bg-bg px-2.5 text-[13px] text-fg shadow-raised transition-colors placeholder:text-faint focus:border-line-strong";
 
 interface FieldProps {
   label: string;
@@ -110,7 +110,7 @@ export const Segmented = <T extends string>({
 }: SegmentedProps<T>) => (
   <div
     className={clsx(
-      "inline-flex rounded-md border border-line bg-bg p-0.5",
+      "inline-flex rounded-md border border-line bg-bg p-0.5 shadow-raised",
       className,
     )}
   >

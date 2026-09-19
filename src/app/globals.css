@@ -2,8 +2,8 @@
 @import "../styles/discord-tokens.css";
 @import "../components/preview/preview.css";
 
-/* Light carries a faint cool cast so it is not flat white. Dark stays strictly
-   neutral — every channel equal — so it reads as black rather than as blue. */
+/* Light carries a faint cool cast so it is not flat white. Dark keeps every
+   channel equal, or it reads blue instead of black. */
 :root {
   --bg: #fcfcfd;
   --panel: #f6f6f9;
@@ -16,6 +16,12 @@
   --danger: #e5484d;
   --warn: #b7791f;
   --selected: #ececf0;
+
+  /* Depth. Light needs little; dark needs more, plus a top highlight, or a
+     raised surface reads as a flat patch. */
+  --elevation-1: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 3px rgb(0 0 0 / 0.04);
+  --elevation-2:
+    0 12px 32px -10px rgb(0 0 0 / 0.18), 0 2px 8px rgb(0 0 0 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -31,10 +37,24 @@
     --danger: #ff6369;
     --warn: #f5a623;
     --selected: #1c1c1c;
+
+    --elevation-1:
+      0 1px 2px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.04);
+    --elevation-2:
+      0 16px 40px -12px rgb(0 0 0 / 0.75), 0 4px 12px rgb(0 0 0 / 0.45);
   }
 }
 
 @theme inline {
+  /* Softer than Tailwind's defaults, set once so every rounded-* follows. */
+  --radius-sm: 0.3125rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  --shadow-raised: var(--elevation-1);
+  --shadow-float: var(--elevation-2);
+
   --color-bg: var(--bg);
   --color-panel: var(--panel);
   --color-line: var(--line);
@@ -99,6 +119,18 @@ body {
 @keyframes fade-out {
   to {
     opacity: 0;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
   }
 }
 

@@ -6,7 +6,7 @@
  * (images/link-previews/link-preview-component-{full,text}.webp in
  * discord/discord-api-docs#8606), so they match a real client.
  *
- * The light values are not sampled — the docs ship dark screenshots only.
+ * The light values are not sampled. The docs ship dark screenshots only.
  * They follow Discord's published light palette and are still approximate.
  */
 
@@ -33,6 +33,7 @@
   --dc-mention-bg: rgb(88 101 242 / 0.3);
   --dc-mention-text: #c9cdfb;
   --dc-media-empty: #1a1a1e;
+  --dc-select: #5865f2;
 }
 
 [data-dc-theme="light"] {
@@ -58,4 +59,5 @@
   --dc-mention-bg: rgb(88 101 242 / 0.15);
   --dc-mention-text: #505cdc;
   --dc-media-empty: #e3e5e8;
+  --dc-select: #5865f2;
 }

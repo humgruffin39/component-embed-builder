@@ -55,7 +55,7 @@ export const OutputPanel = ({ root, issues }: OutputPanelProps) => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-wrap items-center gap-1 border-b border-line px-2 py-1.5">
+      <div className="flex flex-wrap items-center gap-1 px-2 py-1.5">
         {OUTPUT_FORMATS.map((entry) => {
           const Icon = STACK_ICONS[entry.id];
           return (
@@ -77,14 +77,17 @@ export const OutputPanel = ({ root, issues }: OutputPanelProps) => {
         })}
       </div>
 
-      <div className="flex items-center gap-2 border-b border-line py-1 pr-1.5 pl-3">
-        <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-faint">
+      <div className="flex items-center gap-3 py-1 pr-1.5 pl-3">
+        <span className="shrink-0 text-[11px] text-faint">
           {format.filename}
+        </span>
+        <span className="min-w-0 flex-1 truncate text-[11px] text-muted">
+          {format.hint}
         </span>
         <CopyButton value={code} />
       </div>
 
-      <div className="scroll-area flex-1 overflow-auto bg-panel">
+      <div className="scroll-area flex-1 overflow-auto rounded-t-lg bg-bg">
         {blocked ? (
           <ul className="p-1.5">
             {issues
@@ -99,7 +102,7 @@ export const OutputPanel = ({ root, issues }: OutputPanelProps) => {
       </div>
 
       {!blocked && issues.length > 0 && (
-        <ul className="scroll-area max-h-24 overflow-y-auto border-t border-line p-1.5">
+        <ul className="scroll-area max-h-24 overflow-y-auto p-1.5">
           {issues.map((issue, index) => (
             <IssueRow key={index} issue={issue} />
           ))}

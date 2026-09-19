@@ -28,7 +28,7 @@ export const EmojiField = ({ value, onChange }: EmojiFieldProps) => {
             aria-label="Choose an emoji"
             className={clsx(
               // Square, so the padding round the glyph is the same on every side.
-              "flex aspect-square items-center justify-center rounded-md border border-line bg-bg text-base transition-colors hover:border-line-strong",
+              "flex aspect-square items-center justify-center rounded-md border border-line bg-bg text-base shadow-raised transition-colors hover:border-line-strong",
               CONTROL_HEIGHT,
             )}
           >
@@ -66,7 +66,7 @@ export const EmojiField = ({ value, onChange }: EmojiFieldProps) => {
                 ),
                 Emoji: ({ emoji, ...props }) => (
                   <button
-                    className="flex size-8 items-center justify-center rounded text-xl data-[active]:bg-selected"
+                    className="flex size-8 items-center justify-center rounded text-xl data-active:bg-selected"
                     {...props}
                   >
                     {emoji.emoji}

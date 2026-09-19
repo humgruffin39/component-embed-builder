@@ -324,3 +324,81 @@ ol.dc-list {
   font-size: 1.125em;
   line-height: 1;
 }
+
+.dc-media__alt {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgb(0 0 0 / 0.5);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+/* Selection ---------------------------------------------------------------- */
+/* Outline, never border or padding: the embed's own geometry has to stay exact. */
+
+.dc-selectable {
+  position: relative;
+  cursor: pointer;
+  border-radius: 4px;
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 120ms ease-out;
+}
+
+.dc-selectable:hover {
+  outline-color: color-mix(in srgb, var(--dc-select) 45%, transparent);
+}
+
+/* Only the innermost target lights up, not every ancestor under the pointer. */
+.dc-selectable:has(.dc-selectable:hover):hover {
+  outline-color: transparent;
+}
+
+.dc-selectable[data-selected],
+.dc-selectable[data-selected]:hover,
+.dc-selectable[data-selected]:has(.dc-selectable:hover):hover {
+  outline: 2px solid var(--dc-select);
+}
+
+/* The container wraps everything, so its own outline hugs the card. */
+.dc-container.dc-selectable {
+  outline-offset: 1px;
+}
+
+/* A separator is one pixel tall, so it needs a hit area it does not own. */
+.dc-separator.dc-selectable::before {
+  content: "";
+  position: absolute;
+  inset: -6px 0;
+  border-radius: 4px;
+}
+
+/* Name tag on the outline, sitting above the top-right corner. */
+.dc-selectable[data-selected]::after {
+  content: attr(data-label);
+  position: absolute;
+  right: -2px;
+  bottom: calc(100% + 3px);
+  padding: 1px 5px;
+  border-radius: 4px 4px 0 0;
+  background: var(--dc-select);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 15px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The container sits at the very top, so its tag hangs inside instead. */
+.dc-container.dc-selectable[data-selected]::after {
+  bottom: auto;
+  top: -2px;
+  border-radius: 0 0 4px 4px;
+}

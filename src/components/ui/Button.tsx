@@ -27,6 +27,20 @@ const SIZES: Record<Size, string> = {
   md: "gap-2 px-3.5 text-[13px]",
 };
 
+/** The button's look, for the odd case where the element has to be an anchor. */
+export const buttonClasses = (
+  variant: Variant = "secondary",
+  size: Size = "md",
+  className?: string,
+): string =>
+  clsx(
+    "inline-flex shrink-0 items-center justify-center rounded-md font-medium shadow-raised transition-[opacity,background,border,box-shadow] disabled:cursor-not-allowed disabled:shadow-none",
+    CONTROL_HEIGHT,
+    VARIANTS[variant],
+    SIZES[size],
+    className,
+  );
+
 export const Button = ({
   variant = "secondary",
   size = "md",
@@ -36,13 +50,7 @@ export const Button = ({
 }: ButtonProps) => (
   <button
     type={type}
-    className={clsx(
-      "inline-flex shrink-0 items-center justify-center rounded-md font-medium transition-[opacity,background,border] disabled:cursor-not-allowed",
-      CONTROL_HEIGHT,
-      VARIANTS[variant],
-      SIZES[size],
-      className,
-    )}
+    className={buttonClasses(variant, size, className)}
     {...props}
   />
 );

@@ -13,7 +13,7 @@ export const TextInspector = ({ node }: { node: TextDisplayNode }) => {
       label="Content"
       mark={
         <span title="Markdown supported" className="flex text-faint">
-          <MarkdownMark className="h-[11px] w-auto" />
+          <MarkdownMark className="h-2.75 w-auto" />
         </span>
       }
       hint={`${node.content.length} chars`}

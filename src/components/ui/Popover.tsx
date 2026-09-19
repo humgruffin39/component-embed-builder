@@ -27,7 +27,8 @@ export const Popover = ({
         align={align}
         sideOffset={6}
         style={{ width }}
-        className="z-50 rounded-xl border border-line bg-panel p-3 text-fg shadow-xl shadow-black/20 outline-none data-[state=closed]:animate-[fade-out_120ms_ease-out] data-[state=open]:animate-[fade-in_140ms_ease-out]"
+        collisionPadding={8}
+        className="z-50 max-w-[calc(100vw-1rem)] rounded-xl border border-line bg-panel p-3 text-fg shadow-float outline-none data-[state=closed]:animate-[fade-out_120ms_ease-out] data-[state=open]:animate-[fade-in_140ms_ease-out]"
       >
         {children}
       </PopoverPrimitive.Content>
