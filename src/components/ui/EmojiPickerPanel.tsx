@@ -16,6 +16,15 @@ export default function EmojiPickerPanel({
   return (
     <EmojiPicker.Root
       className="flex h-72 flex-col gap-1.5"
+      // Left to itself the picker asks the browser what it can draw, and the
+      // answer comes back yes for everything, so it offers the newest emoji
+      // there are. The ones Windows has no glyph for then come apart into
+      // their pieces: a walking person next to a blue arrow, a bird next to a
+      // black square. Emoji 14 is the newest set every current platform draws.
+      emojiVersion={14}
+      // Pinned, because naming a version otherwise sends it to a dataset of
+      // that number instead.
+      emojibaseUrl="https://cdn.jsdelivr.net/npm/emojibase-data@latest"
       onEmojiSelect={({ emoji }) => onSelect(emoji)}
     >
       <EmojiPicker.Search className={clsx(
