@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import clsx from "clsx";
-import { EmojiPicker } from "frimousse";
+import dynamic from "next/dynamic";
 import { EmojiIcon } from "@/components/ui/icons";
 import { CONTROL_HEIGHT } from "@/components/ui/control";
 import { Popover } from "@/components/ui/Popover";
+
+const EmojiPickerPanel = dynamic(
+  () => import("@/components/ui/EmojiPickerPanel"),
+  {
+    ssr: false,
+    // The same height as the picker, so opening it settles in one step.
+    loading: () => <div className="h-72" />,
+  },
+);
 
 interface EmojiFieldProps {
   value: string;
@@ -36,46 +45,12 @@ export const EmojiField = ({ value, onChange }: EmojiFieldProps) => {
           </button>
         }
       >
-        <EmojiPicker.Root
-          className="flex h-72 flex-col gap-1.5"
-          onEmojiSelect={({ emoji }) => {
+        <EmojiPickerPanel
+          onSelect={(emoji) => {
             onChange(emoji);
             setOpen(false);
           }}
-        >
-          <EmojiPicker.Search className={clsx(
-            "w-full rounded-md border border-line bg-bg px-2.5 text-[13px] text-fg placeholder:text-faint focus:border-line-strong focus:outline-none",
-            CONTROL_HEIGHT,
-          )} />
-          <EmojiPicker.Viewport className="scroll-area relative flex-1 outline-none">
-            <EmojiPicker.Empty className="flex h-full items-center justify-center text-[13px] text-faint">
-              No emoji found.
-            </EmojiPicker.Empty>
-            <EmojiPicker.List
-              className="pb-1 select-none"
-              components={{
-                // Opaque and sticky, so scrolling emoji pass behind it
-                // rather than through the gap above it.
-                CategoryHeader: ({ category, ...props }) => (
-                  <div
-                    className="sticky top-0 z-10 bg-panel px-1 pt-1 pb-1 text-[11px] font-medium text-faint"
-                    {...props}
-                  >
-                    {category.label}
-                  </div>
-                ),
-                Emoji: ({ emoji, ...props }) => (
-                  <button
-                    className="flex size-8 items-center justify-center rounded text-xl data-active:bg-selected"
-                    {...props}
-                  >
-                    {emoji.emoji}
-                  </button>
-                ),
-              }}
-            />
-          </EmojiPicker.Viewport>
-        </EmojiPicker.Root>
+        />
       </Popover>
 
       {value && (

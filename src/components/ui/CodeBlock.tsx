@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { type BundledLanguage, codeToHtml } from "shiki";
+import { highlight, type Language } from "@/lib/highlight";
 
 /** Roughly one character of the mono face, for sizing the skeleton bars. */
 const CHAR = 0.6;
@@ -83,15 +83,13 @@ const spliceLines = (
 };
 
 interface Result {
-  language: BundledLanguage;
+  language: Language;
   key: string;
   html: string;
 }
 
 /**
- * Shiki is loaded on demand and produces both themes in one pass, emitting
- * `--shiki-light` / `--shiki-dark` custom properties that globals.css picks
- * between.
+ * Shiki is fetched on first use, so nothing about it is in the initial load.
  *
  * While the same language is being re-highlighted, usually because someone is
  * typing, the last result stays on screen. Swapping to a placeholder on every
@@ -103,7 +101,7 @@ export const CodeBlock = ({
   language,
 }: {
   code: string;
-  language: BundledLanguage;
+  language: Language;
 }) => {
   const [result, setResult] = useState<Result | null>(null);
   const key = `${language}::${code}`;
@@ -111,19 +109,14 @@ export const CodeBlock = ({
   useEffect(() => {
     let current = true;
 
-    const themes = {
-      themes: { light: "github-light-default", dark: "vesper" },
-      defaultColor: false,
-    } as const;
-
     const render = async () => {
-      const base = await codeToHtml(code, { lang: language, ...themes });
+      const base = await highlight(code, language);
       const region = payloadLines(code);
       if (!region) return base;
 
       const [from, to] = region;
       const payload = code.split("\n").slice(from, to + 1).join("\n");
-      const patch = await codeToHtml(payload, { lang: "json", ...themes });
+      const patch = await highlight(payload, "json");
       return spliceLines(base, patch, from, to);
     };
 

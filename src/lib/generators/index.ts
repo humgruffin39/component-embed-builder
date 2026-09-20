@@ -1,6 +1,7 @@
 import { EMBED_TAG } from "@/lib/constants";
 import type { ContainerNode } from "@/lib/document";
 import { deriveFallback } from "@/lib/fallback";
+import type { Language } from "@/lib/highlight";
 import {
   embedScriptHtml,
   formatPayload,
@@ -24,7 +25,7 @@ export interface OutputFormat {
   /** Where this snippet goes, for anyone who has not done this before. */
   hint: string;
   /** Shiki grammar for the snippet. */
-  language: "html" | "json" | "tsx" | "astro" | "svelte" | "markdown";
+  language: Language;
   generate: (root: ContainerNode) => string;
 }
 
