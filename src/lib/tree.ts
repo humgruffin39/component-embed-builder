@@ -275,6 +275,21 @@ export const ancestorsOf = (root: ContainerNode, id: NodeId): TreeNode[] => {
 };
 
 /**
+ * Which top-level slot a drop lands in. Dropping on anything nested counts as
+ * dropping on the top-level component it sits inside, and an id that belongs
+ * to no row at all, such as the space below the last one, means the end.
+ */
+export const topLevelIndexOf = (root: ContainerNode, overId: NodeId): number => {
+  const index = root.components.findIndex((child) => child.id === overId);
+  if (index !== -1) return index;
+  for (const ancestor of ancestorsOf(root, overId)) {
+    const nested = root.components.findIndex((child) => child.id === ancestor.id);
+    if (nested !== -1) return nested;
+  }
+  return root.components.length;
+};
+
+/**
  * The rows the tree shows, top to bottom, skipping anything folded away.
  * Arrow keys walk this list, so it has to match what is on screen.
  */

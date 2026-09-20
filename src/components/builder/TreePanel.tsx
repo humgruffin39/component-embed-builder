@@ -16,6 +16,7 @@ import {
   PointerSensor,
   closestCenter,
   pointerWithin,
+  useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -28,10 +29,10 @@ import {
 import { ComponentType, NODE_LABELS } from "@/lib/constants";
 import type { ContainerChildNode, ContainerNode, NodeId } from "@/lib/document";
 import {
-  ancestorsOf,
   countComponents,
   findNode,
   isComponentNode,
+  topLevelIndexOf,
   visibleRows,
 } from "@/lib/tree";
 import { GalleryItemIcon, NODE_ICONS } from "@/components/ui/icons";
@@ -62,17 +63,26 @@ const List = ({ ids, children }: { ids: NodeId[]; children: ReactNode }) => (
 );
 
 /**
- * Which slot in the container a drop lands in. Dropping on anything nested
- * counts as dropping on the top-level component it sits inside.
+ * The space under the last row. Without it a palette tile has nothing to land
+ * on below the tree, which leaves no way to drop one at the end.
  */
-const topLevelIndex = (root: ContainerNode, overId: NodeId): number => {
-  const index = root.components.findIndex((child) => child.id === overId);
-  if (index !== -1) return index;
-  for (const ancestor of ancestorsOf(root, overId)) {
-    const nested = root.components.findIndex((c) => c.id === ancestor.id);
-    if (nested !== -1) return nested;
-  }
-  return root.components.length;
+const TREE_END = "tree-end";
+
+const EndZone = ({ enabled, active }: { enabled: boolean; active: boolean }) => {
+  // Only a palette tile lands here. Reordering is driven by the rows
+  // themselves, and a zone this tall would start winning drops from them.
+  const { setNodeRef } = useDroppable({ id: TREE_END, disabled: !enabled });
+
+  return (
+    <div ref={setNodeRef} className="relative min-h-8 flex-1">
+      {active && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-0 right-0 left-0 h-0.5 rounded-full bg-accent"
+        />
+      )}
+    </div>
+  );
 };
 
 const Rows = ({
@@ -278,7 +288,8 @@ export const TreePanel = ({
   })();
 
   const total = countComponents(root);
-  const dropIndex = overId ? topLevelIndex(root, overId) : null;
+  const fromPalette = Boolean(dragging?.startsWith(PALETTE_PREFIX));
+  const dropIndex = overId ? topLevelIndexOf(root, overId) : null;
 
   return (
     // Selection is left alone, except while dragging: that is when a stray
@@ -291,12 +302,8 @@ export const TreePanel = ({
         // closestCenter always finds a row, however far away the pointer is,
         // so a palette tile dropped anywhere would land. pointerWithin only
         // answers when the pointer is genuinely over a row.
-        collisionDetection={
-          dragging?.startsWith(PALETTE_PREFIX) ? pointerWithin : closestCenter
-        }
-        modifiers={
-          dragging?.startsWith(PALETTE_PREFIX) ? [] : [restrictToVerticalAxis]
-        }
+        collisionDetection={fromPalette ? pointerWithin : closestCenter}
+        modifiers={fromPalette ? [] : [restrictToVerticalAxis]}
         onDragStart={({ active }: DragStartEvent) => {
           setDragging(String(active.id));
           setPicked(
@@ -323,15 +330,21 @@ export const TreePanel = ({
               const data = active.data.current as {
                 add: (index?: number) => void;
               };
-              data.add(topLevelIndex(root, String(over.id)));
+              data.add(topLevelIndexOf(root, String(over.id)));
             }
             return;
           }
           if (over && id !== over.id) moveNode(id, String(over.id));
         }}
       >
-        <div className="scroll-area flex-1 overflow-y-auto p-2">
-          <div role="tree" aria-label="Embed components" onKeyDown={onKeyDown}>
+        <div className="scroll-area flex flex-1 flex-col overflow-y-auto p-2">
+          <div
+            role="tree"
+            aria-label="Embed components"
+            // The end zone below takes the leftover space, never this.
+            className="shrink-0"
+            onKeyDown={onKeyDown}
+          >
             <TreeRow
               id={root.id}
               label={NODE_LABELS[root.type]}
@@ -348,13 +361,15 @@ export const TreePanel = ({
                   key={child.id}
                   node={child}
                   depth={1}
-                  dropBefore={
-                    dropIndex === index && dragging?.startsWith(PALETTE_PREFIX)
-                  }
+                  dropBefore={dropIndex === index && fromPalette}
                 />
               ))}
             </List>
           </div>
+          <EndZone
+            enabled={fromPalette}
+            active={fromPalette && dropIndex === root.components.length}
+          />
         </div>
 
         {!hidePalette && <Palette root={root} total={total} />}
